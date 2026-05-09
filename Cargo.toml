@@ -1,0 +1,35 @@
+[workspace]
+members = ["crates/embedcache-core", "crates/embedcache-py"]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+authors = ["Mukunda Katta"]
+edition = "2021"
+license = "MIT OR Apache-2.0"
+rust-version = "1.75"
+repository = "https://github.com/MukundaKatta/embedcache"
+homepage = "https://github.com/MukundaKatta/embedcache"
+documentation = "https://docs.rs/embedcache-core"
+readme = "README.md"
+keywords = ["embeddings", "cache", "llm", "rag", "kv"]
+categories = ["caching", "science"]
+
+[workspace.dependencies]
+# Embedded ACID KV store. redb is actively maintained and has a single-file
+# format that survives unclean shutdowns; sled was rejected because the
+# maintainer paused work.
+redb = "2.2"
+# Fast cryptographic hash for content-addressed cache keys. blake3 is ~5x
+# faster than sha-256 on the kind of payloads (LLM prompt strings + model
+# name) we hash.
+blake3 = "1.5"
+# Standard derive-based serialization.
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+# Library error type.
+thiserror = "2.0"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1

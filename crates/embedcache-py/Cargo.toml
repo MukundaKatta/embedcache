@@ -1,0 +1,23 @@
+[package]
+name = "embedcache-py"
+description = "PyO3 bindings for embedcache-core. Builds the embedcache._native module."
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme = "../../README.md"
+publish = false
+
+[lib]
+name = "embedcache_native"
+crate-type = ["cdylib"]
+
+[dependencies]
+embedcache-core = { path = "../embedcache-core", version = "0.1.0" }
+# PyO3 with abi3-py310 for one-wheel-fits-3.10–3.13.
+pyo3 = { version = "0.23", features = ["abi3-py310", "extension-module"] }
+# numpy <-> ndarray zero-copy. f32 is the canonical embedding dtype.
+numpy = "0.23"

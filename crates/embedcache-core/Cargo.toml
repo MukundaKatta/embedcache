@@ -1,0 +1,28 @@
+[package]
+name = "embedcache-core"
+description = "Pure-Rust core for embedcache: a content-addressed embedding cache."
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+readme = "README.md"
+keywords.workspace = true
+categories.workspace = true
+
+[dependencies]
+redb = { workspace = true }
+blake3 = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+# Temporary directories for cache tests.
+tempfile = "3.10"
+
+[lib]
+path = "src/lib.rs"
