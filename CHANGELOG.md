@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-05-10
+
+### Fixed
+- `CacheStats::disk_bytes` now reports the actual file size in bytes
+  rather than always returning 0. The `Cache` stashes its `Path` at open
+  time so `stats()` can `metadata()` it accurately.
+
+### Added
+- `Cache::path()` accessor for callers that need the underlying database
+  file path (backups, manual `fsync`, etc.).
+
 ## [0.1.0] - 2026-05-09
 
 ### Added

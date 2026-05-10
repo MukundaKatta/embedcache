@@ -63,6 +63,10 @@ redb_from!(
 pub struct Cache {
     db: Database,
     ttl_secs: Option<u64>,
+    /// Path to the underlying redb file. Stashed at open time so `stats`
+    /// can report `disk_bytes` accurately (redb itself does not surface
+    /// the path back to callers).
+    path: std::path::PathBuf,
 }
 
 /// Cache stats returned by [`Cache::stats`].
@@ -103,7 +107,11 @@ impl Cache {
             let _t = txn.open_table(TABLE)?;
         }
         txn.commit()?;
-        Ok(Self { db, ttl_secs })
+        Ok(Self {
+            db,
+            ttl_secs,
+            path: path.as_ref().to_path_buf(),
+        })
     }
 
     /// 32-byte content-addressed key for `(model, text)`.
@@ -284,10 +292,16 @@ impl Cache {
     }
 
     fn disk_size(&self) -> u64 {
-        // redb does not expose the file path back to us; the caller knows
-        // the path. For stats we return 0 if we cannot infer it, which is
-        // honest rather than approximate.
-        0
+        // We stash the path at open time so we can `metadata()` it for an
+        // honest byte count. Returns 0 if the file vanished (e.g. another
+        // process unlinked it) — the cache itself is still usable since
+        // redb keeps an open fd.
+        std::fs::metadata(&self.path).map(|m| m.len()).unwrap_or(0)
+    }
+
+    /// Path to the underlying database file.
+    pub fn path(&self) -> &std::path::Path {
+        &self.path
     }
 }
 
@@ -429,6 +443,22 @@ mod tests {
         let (_dir, path) = tempdb();
         let err = Cache::open_with_ttl(&path, Some(0));
         assert!(err.is_err());
+    }
+
+    #[test]
+    fn disk_bytes_reflects_real_file_size() {
+        let (_dir, path) = tempdb();
+        let cache = Cache::open(&path).unwrap();
+        cache.put("m", "k", &[1.0_f32, 2.0, 3.0]).unwrap();
+        let s = cache.stats().unwrap();
+        assert!(s.disk_bytes > 0, "disk_bytes should be > 0 after writes");
+    }
+
+    #[test]
+    fn path_accessor_returns_open_path() {
+        let (_dir, path) = tempdb();
+        let cache = Cache::open(&path).unwrap();
+        assert_eq!(cache.path(), path.as_path());
     }
 
     #[test]
